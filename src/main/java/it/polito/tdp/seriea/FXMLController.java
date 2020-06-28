@@ -1,9 +1,14 @@
 package it.polito.tdp.seriea;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.seriea.model.Adiacenza;
 import it.polito.tdp.seriea.model.Model;
+import it.polito.tdp.seriea.model.Season;
+import it.polito.tdp.seriea.model.SquadraTifosi;
+import it.polito.tdp.seriea.model.Team;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -23,10 +28,10 @@ public class FXMLController {
     private URL location;
 
     @FXML
-    private ChoiceBox<?> boxSquadra;
+    private ChoiceBox<Team> boxSquadra;
 
     @FXML
-    private ChoiceBox<?> boxStagione;
+    private ChoiceBox<Season> boxStagione;
 
     @FXML
     private Button btnCalcolaConnessioniSquadra;
@@ -42,17 +47,39 @@ public class FXMLController {
 
     @FXML
     void doAnalizzaSquadre(ActionEvent event) {
-
+    	txtResult.clear();
+    	List<Team> teams = this.model.buildGraph();
+    	this.boxSquadra.getItems().setAll(teams);
     }
 
     @FXML
     void doCalcolaConnessioniSquadra(ActionEvent event) {
-
+    	txtResult.clear();
+    	Team team = this.boxSquadra.getValue();
+    	if(team == null) {
+    		txtResult.appendText("Selezionare una squadra");
+    		return;
+    	}
+    	List<Adiacenza> connessi = this.model.getConnessioni(team);
+    	txtResult.appendText("Squadre connesse a "+team+"\n\n");
+    	for(Adiacenza a : connessi)
+    		txtResult.appendText(a.toString()+"\n");
     }
 
     @FXML
     void doSimulaTifosi(ActionEvent event) {
-
+    	txtResult.clear();
+    	
+    	Season season = this.boxStagione.getValue();
+    	if(season == null) {
+    		txtResult.appendText("Selezionare una stagione");
+    		return;
+    	}
+    	
+    	List<SquadraTifosi> result = this.model.simula(season);
+    	result.sort(null);
+    	for(SquadraTifosi s : result) 
+    		txtResult.appendText(s.toString()+"\n");
     }
 
     @FXML
@@ -68,5 +95,7 @@ public class FXMLController {
 
 	public void setModel(Model model) {
 		this.model = model;
+		
+		this.boxStagione.getItems().setAll(this.model.getSeasons());
 	}
 }
